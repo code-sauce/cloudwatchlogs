@@ -73,26 +73,35 @@ class LogStreamHandler(object):
                 fhandle.write(str(_log) + '\n')
         fhandle.close()
 
+    def _wanted_log_stream(self, log_stream_name):
+        if log_stream_name in config.LOG_STREAMS_FILTER:
+            return True
+        return False
+
     def _discover_log_streams(self):
         """
         This method is used by the main process to discover new log streams
         and keep a shared state(map) of the log streams being worked on.
         """
-
-        log_groups = self.aws_client.get_log_groups()
+        log_groups = self.aws_client.get_log_groups(log_group_name_prefix=config.LOG_GROUP_NAME_PREFIX or None)
+        print("log groups: ", log_groups)
         if not log_groups:
             return
         log_group_names = [x['logGroupName'] for x in log_groups]
         for log_group_name in log_group_names:
             log_streams = self.aws_client.get_log_streams(log_group_name=log_group_name)
             for log_stream in log_streams:
-                if not LOG_STREAM_MAP.get((log_group_name, log_stream['logStreamName'])):
+                if not LOG_STREAM_MAP.get((log_group_name,)):
                     # setting the value to None is an indication that no thread is working on the log stream
-                    LOG_STREAM_MAP[(log_group_name, log_stream['logStreamName'])] = None
+                    lsn = log_stream['logStreamName']
+                    if not self._wanted_log_stream(lsn):
+                        logging.warning("Ignoring Log Stream %s", lsn)
+                    else:
+                        LOG_STREAM_MAP[(log_group_name, lsn)] = None
 
     def discover_logs(self):
         """
-        A daemon that continuosly looks for log streams
+        A daemon that continuously looks for log streams
         """
         while True:
             self._discover_log_streams()
@@ -103,6 +112,7 @@ class LogStreamHandler(object):
         Reads from the global log stream map to find any new streams that
         have not been handled. If so, return those
         """
+
         new_streams = []
         for key, value in LOG_STREAM_MAP.items():
             if value is None:

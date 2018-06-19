@@ -22,7 +22,7 @@ class CloudWatchLogs(object):
             raise Exception("Needs an AWS Connection string")
         self.client = CloudWatchLogs._get_client(aws_access_key, aws_secret_key)
 
-    def get_log_groups(self):
+    def get_log_groups(self, log_group_name_prefix=None):
         """
         For a given AWS cloudwatch connection, gets the CloudWatch Log Groups
         """
@@ -31,9 +31,10 @@ class CloudWatchLogs(object):
         while True:
             if not next_token:
                 # first attempt
-                response = self.client.describe_log_groups()
+                response = self.client.describe_log_groups(logGroupNamePrefix=log_group_name_prefix)
             else:
-                response = self.client.describe_log_groups(nextToken=next_token)
+                response = self.client.describe_log_groups(logGroupNamePrefix=log_group_name_prefix, nextToken=next_token)
+            print("LOG GROUPS: ", response)
             log_groups.extend(response['logGroups'])
             next_token = response.get('nextToken')
             if not next_token:
@@ -56,7 +57,7 @@ class CloudWatchLogs(object):
                 response = self.client.describe_log_streams(
                     logGroupName=log_group_name,
                     orderBy='LogStreamName',
-                    descending=False,
+                    descending=False
                 )
             else:
                 response = self.client.describe_log_streams(
@@ -71,12 +72,13 @@ class CloudWatchLogs(object):
                 break  # nothing more to fetch
         return log_streams
 
-    def get_log_events(self, log_group_name, log_stream_name, batch_limit=20, poll_sleep_time=1):
+    def get_log_events(self, log_group_name, log_stream_name, batch_limit=100, poll_sleep_time=1):
         """
         Gets the log events for the log group and log stream combination
         @param log_group_name: the log group name
         @param log_stream_name: the log stream in the group
         @param batch_limit: the max number of log events returned
+        @param poll_sleep_time: time to sleep (in seconds) between polling for logs, to avoid rate limit
         returns: log events [list]
         """
 
