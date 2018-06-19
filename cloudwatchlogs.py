@@ -3,6 +3,7 @@ Module to interact with the cloudwatch logs
 """
 import boto3
 import logging
+import time
 
 
 class CloudWatchLogs(object):
@@ -70,7 +71,7 @@ class CloudWatchLogs(object):
                 break  # nothing more to fetch
         return log_streams
 
-    def get_log_events(self, log_group_name, log_stream_name, batch_limit=20):
+    def get_log_events(self, log_group_name, log_stream_name, batch_limit=20, poll_sleep_time=1):
         """
         Gets the log events for the log group and log stream combination
         @param log_group_name: the log group name
@@ -103,7 +104,7 @@ class CloudWatchLogs(object):
                     )
 
                 yield response['events']
-
+                time.sleep(poll_sleep_time)
                 next_token = response['nextForwardToken']
                 if not next_token:
                     break
