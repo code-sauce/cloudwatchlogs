@@ -5,7 +5,7 @@ import signal
 from cloudwatchlogs import CloudWatchLogs
 from slugify import slugify
 import logging
-import config
+import config_template
 import os
 
 """
@@ -51,11 +51,11 @@ class LogStreamHandler(object):
 
         sanitized_log_group_name = LogStreamHandler._get_log_dir_name(log_group_name)
         sanitized_log_stream_name = slugify(log_stream_name)
-        dir_path = os.path.join(config.AWS_LOGS_DIRECTORY, sanitized_log_group_name)
+        dir_path = os.path.join(config_template.AWS_LOGS_DIRECTORY, sanitized_log_group_name)
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
         return "{0}/{1}/{2}.log".format(
-            config.AWS_LOGS_DIRECTORY, sanitized_log_group_name, sanitized_log_stream_name)
+            config_template.AWS_LOGS_DIRECTORY, sanitized_log_group_name, sanitized_log_stream_name)
 
     def write_log(self, file_name, log_group_name, log_stream_name):
         """
@@ -96,7 +96,7 @@ class LogStreamHandler(object):
         """
         while True:
             self._discover_log_streams()
-            time.sleep(config.TIME_DAEMON_SLEEP)
+            time.sleep(config_template.TIME_DAEMON_SLEEP)
 
     def _get_new_log_streams(self):
         """
@@ -122,7 +122,7 @@ class LogStreamHandler(object):
             new_streams = self._get_new_log_streams()
 
             if not new_streams:
-                time.sleep(config.TIME_DAEMON_SLEEP)
+                time.sleep(config_template.TIME_DAEMON_SLEEP)
             for log_group_name, log_stream_name in new_streams:
                 file_name = LogStreamHandler._get_file_name(log_group_name, log_stream_name)
                 log_getter = threading.Thread(
@@ -137,9 +137,9 @@ def configure_logging():
     Configure the
     """
     logging.basicConfig(
-        filename=config.LOG_FILE,
-        level=config.LOG_LEVEL,
-        format=config.LOG_FORMAT
+        filename=config_template.LOG_FILE,
+        level=config_template.LOG_LEVEL,
+        format=config_template.LOG_FORMAT
     )
 
 
@@ -162,13 +162,13 @@ class LogProcessMonitor(object):
                     "Log Group: {0}, Stream: {1} is processed by: {2}".format(
                         _log_group_stream[0], _log_group_stream[1], _processing_thread)
                 )
-            time.sleep(config.TIME_DAEMON_SLEEP)
+            time.sleep(config_template.TIME_DAEMON_SLEEP)
 
 
 if __name__ == '__main__':
     try:
         configure_logging()
-        client = CloudWatchLogs(config.AWS_ACCESS_KEY, config.AWS_SECRET_KEY)
+        client = CloudWatchLogs(config_template.AWS_ACCESS_KEY, config_template.AWS_SECRET_KEY)
 
         logstreamhandler = LogStreamHandler(client)
 
@@ -184,6 +184,6 @@ if __name__ == '__main__':
             worker.start()
         while True:
             logging.info("Heartbeat")
-            time.sleep(config.TIME_DAEMON_SLEEP)
+            time.sleep(config_template.TIME_DAEMON_SLEEP)
     except KeyboardInterrupt as ex:
         logging.error("Keyboard interrupt received..")
