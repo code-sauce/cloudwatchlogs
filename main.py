@@ -1,11 +1,9 @@
 import threading
 import time
-import sys
-import signal
-from cloudwatchlogs import CloudWatchLogs
 from slugify import slugify
 import logging
 import config
+from cloudwatchlogs import CloudWatchLogs
 import os
 
 """
