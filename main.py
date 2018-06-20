@@ -71,6 +71,7 @@ class LogStreamHandler(object):
         for _logs in self.aws_client.get_log_events(log_group_name, log_stream_name):
             for _log in _logs:
                 fhandle.write(str(_log) + '\n')
+                fhandle.flush()
         fhandle.close()
 
     def _wanted_log_stream(self, log_stream_name):
@@ -94,9 +95,7 @@ class LogStreamHandler(object):
                 if not LOG_STREAM_MAP.get((log_group_name,)):
                     # setting the value to None is an indication that no thread is working on the log stream
                     lsn = log_stream['logStreamName']
-                    if not self._wanted_log_stream(lsn):
-                        logging.warning("Ignoring Log Stream %s", lsn)
-                    else:
+                    if self._wanted_log_stream(lsn):
                         LOG_STREAM_MAP[(log_group_name, lsn)] = None
 
     def discover_logs(self):
