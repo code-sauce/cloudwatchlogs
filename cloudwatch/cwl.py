@@ -4,6 +4,7 @@ Module to interact with the cloudwatch logs
 import boto3
 import logging
 import time
+from cloudwatch.config import *
 
 
 class CloudWatchLogs(object):
@@ -72,7 +73,7 @@ class CloudWatchLogs(object):
                 break  # nothing more to fetch
         return log_streams
 
-    def get_log_events(self, log_group_name, log_stream_name, batch_limit=100, poll_sleep_time=1):
+    def get_log_events(self, log_group_name, log_stream_name, batch_limit=100, poll_sleep_time=6):
         """
         Gets the log events for the log group and log stream combination
         @param log_group_name: the log group name
