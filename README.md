@@ -4,13 +4,18 @@ If you find AWS Cloudwatch logs a pain in the ass, and would like to download a 
 and would rather tail on the log, this application will download the log file for you.   
 
 # Setup and Running
+
+Just run the [pex](https://pex.readthedocs.io/en/stable/) executable
 ```
-1. pyenv virtualenv 3.6.3 venv_cwl
-2. pyenv activate venv_cwl
-3. pip install -r requirements.txt
-4. python main.py
+./cloudwatchlogs.pex 
 ```
 
+# Building
+```
+1. pip wheel -w . .
+2. pex -f $PWD cwlogs boto3 python-slugify -m cloudwatch.main -o cloudwatchlogs.pex
+
+```
 
 ## Daemon(s)
 
@@ -24,7 +29,7 @@ and would rather tail on the log, this application will download the log file fo
 
 ## Configuration
 The configuration of the application includes:
-* `AWS_ACCESS_KEY` and `AWS_SECRET`
+* `AWS_ACCESS_KEY` and `AWS_SECRET` as environment variables
 * `AWS_LOGS_DIRECTORY` - location of downloaded logs 
 * `LOG_GROUP_NAME_PREFIX` - log group prefix to fetch
 * `LOG_STREAMS_FILTER` - eg `['ecs/nrc-container/33fb88f0-2071-4bfa-96ed-abbc396172c4']` a list of log stream to download.

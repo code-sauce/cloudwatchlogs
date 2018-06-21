@@ -1,6 +1,6 @@
-from distutils.core import setup
+from setuptools import setup
 
-setup(name='cwl',
+setup(name='cwlogs',
       version='1.0',
-      packages=['cwl'],
+      packages=['cloudwatch'],
       )
