@@ -31,6 +31,7 @@ export AWS_ACCESS_KEY=xxxxxx
 export AWS_SECRET_KEY=xxxxxx 
 export LOG_GROUP_NAME_PREFIX=/ecs/nrc  # log group prefix to fetch
 export LOG_STREAMS_FILTER=ecs/nrc-container/foo,ecs/nrc-container/bar  # a CSV list of log stream to download.
+export BATCH_SIZE=1000
 ```
 
 ## multiprocesses vs threads

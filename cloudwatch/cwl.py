@@ -22,6 +22,8 @@ class CloudWatchLogs(object):
         if not (aws_access_key and aws_secret_key):
             raise Exception("Needs an AWS Connection string")
         self.client = CloudWatchLogs._get_client(aws_access_key, aws_secret_key)
+        self.start_time = int(time.time()) * 1000
+        logging.info("Getting logs from time: {}".format(self.start_time))
 
     def get_log_groups(self, log_group_name_prefix=None):
         """
@@ -73,7 +75,7 @@ class CloudWatchLogs(object):
                 break  # nothing more to fetch
         return log_streams
 
-    def get_log_events(self, log_group_name, log_stream_name, batch_limit=100, poll_sleep_time=6):
+    def get_log_events(self, log_group_name, log_stream_name, batch_limit=BATCH_SIZE, poll_sleep_time=6):
         """
         Gets the log events for the log group and log stream combination
         @param log_group_name: the log group name
@@ -95,7 +97,8 @@ class CloudWatchLogs(object):
                         logGroupName=log_group_name,
                         logStreamName=log_stream_name,
                         startFromHead=True,
-                        limit=batch_limit
+                        limit=batch_limit,
+                        startTime=self.start_time
                     )
                 else:
                     response = self.client.get_log_events(
@@ -103,7 +106,8 @@ class CloudWatchLogs(object):
                         logStreamName=log_stream_name,
                         nextToken=next_token,
                         startFromHead=True,
-                        limit=batch_limit
+                        limit=batch_limit,
+                        startTime=self.start_time
                     )
 
                 yield response['events']
