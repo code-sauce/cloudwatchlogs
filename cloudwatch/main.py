@@ -1,9 +1,8 @@
 import threading
 import time
 from slugify import slugify
-import logging
-import cloudwatch.config as config
-from cloudwatch.cloudwatchlogs import CloudWatchLogs
+from cloudwatch.cwl import CloudWatchLogs
+from cloudwatch.config import *
 import os
 
 """
@@ -49,11 +48,11 @@ class LogStreamHandler(object):
 
         sanitized_log_group_name = LogStreamHandler._get_log_dir_name(log_group_name)
         sanitized_log_stream_name = slugify(log_stream_name)
-        dir_path = os.path.join(config.AWS_LOGS_DIRECTORY, sanitized_log_group_name)
+        dir_path = os.path.join(AWS_LOGS_DIRECTORY, sanitized_log_group_name)
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
         return "{0}/{1}/{2}.log".format(
-            config.AWS_LOGS_DIRECTORY, sanitized_log_group_name, sanitized_log_stream_name)
+            AWS_LOGS_DIRECTORY, sanitized_log_group_name, sanitized_log_stream_name)
 
     def write_log(self, file_name, log_group_name, log_stream_name):
         """
@@ -73,7 +72,7 @@ class LogStreamHandler(object):
         fhandle.close()
 
     def _wanted_log_stream(self, log_stream_name):
-        if log_stream_name in config.LOG_STREAMS_FILTER:
+        if log_stream_name in LOG_STREAMS_FILTER:
             return True
         return False
 
@@ -82,7 +81,7 @@ class LogStreamHandler(object):
         This method is used by the main process to discover new log streams
         and keep a shared state(map) of the log streams being worked on.
         """
-        log_groups = self.aws_client.get_log_groups(log_group_name_prefix=config.LOG_GROUP_NAME_PREFIX or None)
+        log_groups = self.aws_client.get_log_groups(log_group_name_prefix=LOG_GROUP_NAME_PREFIX or None)
         print("log groups: ", log_groups)
         if not log_groups:
             return
@@ -102,7 +101,7 @@ class LogStreamHandler(object):
         """
         while True:
             self._discover_log_streams()
-            time.sleep(config.TIME_DAEMON_SLEEP)
+            time.sleep(TIME_DAEMON_SLEEP)
 
     def _get_new_log_streams(self):
         """
@@ -129,7 +128,7 @@ class LogStreamHandler(object):
             new_streams = self._get_new_log_streams()
 
             if not new_streams:
-                time.sleep(config.TIME_DAEMON_SLEEP)
+                time.sleep(TIME_DAEMON_SLEEP)
             for log_group_name, log_stream_name in new_streams:
                 file_name = LogStreamHandler._get_file_name(log_group_name, log_stream_name)
                 log_getter = threading.Thread(
@@ -144,9 +143,9 @@ def configure_logging():
     Configure the
     """
     logging.basicConfig(
-        filename=config.LOG_FILE,
-        level=config.LOG_LEVEL,
-        format=config.LOG_FORMAT
+        filename=LOG_FILE,
+        level=LOG_LEVEL,
+        format=LOG_FORMAT
     )
 
 
@@ -169,13 +168,13 @@ class LogProcessMonitor(object):
                     "Log Group: {0}, Stream: {1} is processed by: {2}".format(
                         _log_group_stream[0], _log_group_stream[1], _processing_thread)
                 )
-            time.sleep(config.TIME_DAEMON_SLEEP)
+            time.sleep(TIME_DAEMON_SLEEP)
 
 
 if __name__ == '__main__':
     try:
         configure_logging()
-        client = CloudWatchLogs(config.AWS_ACCESS_KEY, config.AWS_SECRET_KEY)
+        client = CloudWatchLogs(AWS_ACCESS_KEY, AWS_SECRET_KEY)
 
         logstreamhandler = LogStreamHandler(client)
 
@@ -191,6 +190,6 @@ if __name__ == '__main__':
             worker.start()
         while True:
             logging.info("Heartbeat")
-            time.sleep(config.TIME_DAEMON_SLEEP)
+            time.sleep(TIME_DAEMON_SLEEP)
     except KeyboardInterrupt as ex:
         logging.error("Keyboard interrupt received..")

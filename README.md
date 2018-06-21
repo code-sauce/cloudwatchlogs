@@ -12,9 +12,7 @@ Just run the [pex](https://pex.readthedocs.io/en/stable/) executable
 
 # Building
 ```
-1. pip wheel -w . .
-2. pex -f $PWD cwlogs boto3 python-slugify -m cloudwatch.main -o cloudwatchlogs.pex
-
+pip wheel -w . . && pex -f $PWD cloudwatchlogs boto3 python-slugify -m cloudwatch.main -o cloudwatchlogs.pex
 ```
 
 ## Daemon(s)
@@ -27,12 +25,13 @@ Just run the [pex](https://pex.readthedocs.io/en/stable/) executable
 * Since a daemon process doesn't get a SIGHUP from the kernel, we can use a SIGHUP handler to reload the configuration
 
 
-## Configuration
-The configuration of the application includes:
-* `AWS_ACCESS_KEY` and `AWS_SECRET` as environment variables
-* `AWS_LOGS_DIRECTORY` - location of downloaded logs 
-* `LOG_GROUP_NAME_PREFIX` - log group prefix to fetch
-* `LOG_STREAMS_FILTER` - eg `['ecs/nrc-container/33fb88f0-2071-4bfa-96ed-abbc396172c4']` a list of log stream to download.
+## Configuration (Environment variables)
+```
+export AWS_ACCESS_KEY=xxxxxx
+export AWS_SECRET_KEY=xxxxxx 
+export LOG_GROUP_NAME_PREFIX=/ecs/nrc  # log group prefix to fetch
+export LOG_STREAMS_FILTER=ecs/nrc-container/foo,ecs/nrc-container/bar  # a CSV list of log stream to download.
+```
 
 ## multiprocesses vs threads
 * The batch size when writing to the files. One reason to use multiprocess instead of threads is that a single

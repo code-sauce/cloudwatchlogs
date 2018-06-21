@@ -1,6 +1,6 @@
 from setuptools import setup
 
-setup(name='cwlogs',
+setup(name='cloudwatchlogs',
       version='1.0',
       packages=['cloudwatch'],
       )

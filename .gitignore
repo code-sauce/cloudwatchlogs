@@ -1,8 +1,5 @@
 # Byte-compiled / optimized / DLL files
 
-config.py
-_scratch.py
-
 
 __pycache__/
 *.py[cod]
