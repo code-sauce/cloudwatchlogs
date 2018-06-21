@@ -1,5 +1,6 @@
 import threading
 import time
+import logging
 from slugify import slugify
 from cloudwatch.cwl import CloudWatchLogs
 from cloudwatch.config import *
@@ -94,6 +95,7 @@ class LogStreamHandler(object):
                     lsn = log_stream['logStreamName']
                     if self._wanted_log_stream(lsn):
                         LOG_STREAM_MAP[(log_group_name, lsn)] = None
+            logging.info("Log stream map: {}".format(LOG_STREAM_MAP))
 
     def discover_logs(self):
         """
