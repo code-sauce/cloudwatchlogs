@@ -3,7 +3,16 @@
 If you find AWS Cloudwatch logs a pain in the ass, and would like to download a log stream of a log group locally
 and would rather tail on the log, this application will download the log file for you.   
 
-# Setup and Running
+# How do I run it?
+Set up the configuration:
+
+```
+export AWS_ACCESS_KEY=xxxxxx
+export AWS_SECRET_KEY=xxxxxx 
+export LOG_GROUP_NAME_PREFIX=/ecs/nrc  # log group prefix to fetch
+export LOG_STREAMS_FILTER=ecs/nrc-container/foo,ecs/nrc-container/bar  # a CSV list of log stream to download.
+```
+and.....
 
 Just run the [pex](https://pex.readthedocs.io/en/stable/) executable
 ```
@@ -23,16 +32,6 @@ pip wheel -w . . && pex -f $PWD cloudwatchlogs boto3 python-slugify -m cloudwatc
 ### Signal Handling
 * On an interrupt (SIGINT etc.), the program should close any open file descriptors
 * Since a daemon process doesn't get a SIGHUP from the kernel, we can use a SIGHUP handler to reload the configuration
-
-
-## Configuration (Environment variables)
-```
-export AWS_ACCESS_KEY=xxxxxx
-export AWS_SECRET_KEY=xxxxxx 
-export LOG_GROUP_NAME_PREFIX=/ecs/nrc  # log group prefix to fetch
-export LOG_STREAMS_FILTER=ecs/nrc-container/foo,ecs/nrc-container/bar  # a CSV list of log stream to download.
-export BATCH_SIZE=1000
-```
 
 ## multiprocesses vs threads
 * The batch size when writing to the files. One reason to use multiprocess instead of threads is that a single
