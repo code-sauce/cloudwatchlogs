@@ -6,18 +6,25 @@ and would rather tail on the log, this application will download the log file fo
 # How do I run it?
 Set up the configuration:
 
+1. 
 ```
 export AWS_ACCESS_KEY=xxxxxx
 export AWS_SECRET_KEY=xxxxxx 
 export LOG_GROUP_NAME_PREFIX=/ecs/nrc  # log group prefix to fetch
 export LOG_STREAMS_FILTER=ecs/nrc-container/foo,ecs/nrc-container/bar  # a CSV list of log stream to download.
 ```
-and.....
 
-Just run the [pex](https://pex.readthedocs.io/en/stable/) executable
+
+2. Run the [pex](https://pex.readthedocs.io/en/stable/) executable
 ```
 ./cloudwatchlogs.pex 
 ```
+
+You should see the logs being downloaded under the `aws_logs` directory grouped by the log group directory and all the log streams desired under the directory as separate file(s)
+
+# Logs
+You can view the daemon logs at `cwl.log`
+
 
 # Building
 ```
