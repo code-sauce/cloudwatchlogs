@@ -44,10 +44,11 @@ class CloudWatchLogs(object):
                 break  # nothing more to fetch
         return log_groups
 
-    def get_log_streams(self, log_group_name=None):
+    def get_log_streams(self, log_group_name=None, stream_lookback_count=2):
         """
         Given a log group name, return the log streams
         @param log_group_name: Name of the log group
+        @:param stream_lookback_count: Number of streams to lookback (descending sorted)
         returns: log streams[list] in the group
         """
 
@@ -60,13 +61,14 @@ class CloudWatchLogs(object):
                 response = self.client.describe_log_streams(
                     logGroupName=log_group_name,
                     orderBy='LogStreamName',
-                    descending=False
+                    descending=True,
+                    limit=2
                 )
             else:
                 response = self.client.describe_log_streams(
                     logGroupName=log_group_name,
                     orderBy='LogStreamName',
-                    descending=False,
+                    descending=True,
                     nextToken=next_token
                 )
             log_streams.extend(response['logStreams'])
@@ -96,7 +98,7 @@ class CloudWatchLogs(object):
                     response = self.client.get_log_events(
                         logGroupName=log_group_name,
                         logStreamName=log_stream_name,
-                        startFromHead=True,
+                        startFromHead=False,
                         limit=batch_limit,
                         startTime=self.start_time
                     )
@@ -105,7 +107,7 @@ class CloudWatchLogs(object):
                         logGroupName=log_group_name,
                         logStreamName=log_stream_name,
                         nextToken=next_token,
-                        startFromHead=True,
+                        startFromHead=False,
                         limit=batch_limit,
                         startTime=self.start_time
                     )

@@ -73,7 +73,7 @@ class LogStreamHandler(object):
         fhandle.close()
 
     def _wanted_log_stream(self, log_stream_name):
-        if log_stream_name in LOG_STREAMS_FILTER:
+        if LOG_STREAMS_FILTER is None or log_stream_name in LOG_STREAMS_FILTER:
             return True
         return False
 
@@ -88,7 +88,8 @@ class LogStreamHandler(object):
             return
         log_group_names = [x['logGroupName'] for x in log_groups]
         for log_group_name in log_group_names:
-            log_streams = self.aws_client.get_log_streams(log_group_name=log_group_name)
+            log_streams = self.aws_client.get_log_streams(
+                log_group_name=log_group_name, stream_lookback_count=STREAM_LOOKBACK_COUNT)
             for log_stream in log_streams:
                 if not LOG_STREAM_MAP.get((log_group_name,)):
                     # setting the value to None is an indication that no thread is working on the log stream
@@ -187,6 +188,8 @@ if __name__ == '__main__':
         process_monitor_thread = threading.Thread(target=LogProcessMonitor().log_status, args=())
 
         workers = [discover_logs_thread, logs_getter_thread, process_monitor_thread]
+
+        print("Log stream map ", LOG_STREAM_MAP)
         for worker in workers:
             worker.daemon = True
             worker.start()
