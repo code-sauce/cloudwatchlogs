@@ -30,7 +30,7 @@ You can view the daemon logs at `cwl.log`
 
 ```
 1. Install pip
-2. `pip install wheel`
+2. pip install wheel
 3. rm -rf ~/.pex/ && rm cloudwatchlogs.pex && rm cloudwatchlogs-1.0-py2-none-any.whl
 4. pip wheel -w . . && pex -f $PWD cloudwatchlogs boto3 python-slugify -m cloudwatch.main -o cloudwatchlogs.pex
 ```
