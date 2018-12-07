@@ -26,9 +26,15 @@ You should see the logs being downloaded under the `aws_logs` directory grouped 
 You can view the daemon logs at `cwl.log`
 
 
-# Buildingf
+# Building
+
+## Remove old cached files
+```
+rm -rf ~/.pex/ && rm cloudwatchlogs.pex && rm cloudwatchlogs-1.0-py2-none-any.whl
 ```
 
+## Build
+```
 pip wheel -w . . && pex -f $PWD cloudwatchlogs boto3 python-slugify -m cloudwatch.main -o cloudwatchlogs.pex
 ```
 
