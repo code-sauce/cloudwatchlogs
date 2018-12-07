@@ -1,8 +1,12 @@
 from cloudwatch.consumer_abstract import BaseConsumer
 import json
+from cloudwatch.config import MIXPANEL_TOKEN
+from mixpanel import Mixpanel
 
 
 class MixpanelConsumer(BaseConsumer):
+    def __init__(self):
+        self.mp = Mixpanel(MIXPANEL_TOKEN)
 
     def process(self, log_line, log_group, log_stream):
 
@@ -18,5 +22,10 @@ class MixpanelConsumer(BaseConsumer):
 
             # TODO - fire events to mixpanel
             print("firing {} and {} to mixpanel".format(templatized_url, app_id))
+
+            self.mp.track(app_id, 'API Request', {
+                'url': templatized_url,
+                'env': 'dev'
+            })
         except Exception as ex:
-            pass
+            print(ex)

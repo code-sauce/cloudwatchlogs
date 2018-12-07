@@ -3,6 +3,7 @@ import os
 
 AWS_ACCESS_KEY = os.environ['AWS_ACCESS_KEY']
 AWS_SECRET_KEY = os.environ['AWS_SECRET_KEY']
+MIXPANEL_TOKEN = os.environ["MIXPANEL_TOKEN"]
 LOG_FILE = 'cwl.log'
 LOG_LEVEL = logging.INFO
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

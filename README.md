@@ -10,6 +10,7 @@ Set up the configuration:
 ```
 export AWS_ACCESS_KEY=xxxxxx
 export AWS_SECRET_KEY=xxxxxx 
+export MIXPANEL_TOKEN=xxxxxx
 export LOG_GROUP_NAME=/ecs/<log group>  # log group to fetch
 export LOG_STREAMS_FILTER=ecs/nrc-container/foo,ecs/nrc-container/bar  # a CSV list of log stream to download.
 ```
@@ -32,7 +33,7 @@ You can view the daemon logs at `cwl.log`
 1. Install pip
 2. pip install wheel
 3. rm -rf ~/.pex/ && rm cloudwatchlogs.pex && rm cloudwatchlogs-1.0-py2-none-any.whl
-4. pip wheel -w . . && pex -f $PWD cloudwatchlogs boto3 python-slugify -m cloudwatch.main -o cloudwatchlogs.pex
+4. pip wheel -w . . && pex -f $PWD cloudwatchlogs mixpanel boto3 python-slugify -m cloudwatch.main -o cloudwatchlogs.pex
 ```
 
 # Consumers
