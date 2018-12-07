@@ -10,7 +10,7 @@ Set up the configuration:
 ```
 export AWS_ACCESS_KEY=xxxxxx
 export AWS_SECRET_KEY=xxxxxx 
-export LOG_GROUP_NAME_PREFIX=/ecs/nrc  # log group prefix to fetch
+export LOG_GROUP_NAME=/ecs/<log group>  # log group to fetch
 export LOG_STREAMS_FILTER=ecs/nrc-container/foo,ecs/nrc-container/bar  # a CSV list of log stream to download.
 ```
 
@@ -26,8 +26,9 @@ You should see the logs being downloaded under the `aws_logs` directory grouped 
 You can view the daemon logs at `cwl.log`
 
 
-# Building
+# Buildingf
 ```
+
 pip wheel -w . . && pex -f $PWD cloudwatchlogs boto3 python-slugify -m cloudwatch.main -o cloudwatchlogs.pex
 ```
 

@@ -1,9 +1,10 @@
 """
 Module to interact with the cloudwatch logs
 """
-import boto3
-import logging
 import time
+
+import boto3
+
 from cloudwatch.config import *
 
 
@@ -13,8 +14,8 @@ class CloudWatchLogs(object):
     def _get_client(aws_access_key, aws_secret_key):
         return boto3.client(
             'logs',
-             aws_access_key_id=aws_access_key,
-             aws_secret_access_key=aws_secret_key
+            aws_access_key_id=aws_access_key,
+            aws_secret_access_key=aws_secret_key
         )
 
     def __init__(self, aws_access_key, aws_secret_key):
@@ -36,7 +37,8 @@ class CloudWatchLogs(object):
                 # first attempt
                 response = self.client.describe_log_groups(logGroupNamePrefix=log_group_name_prefix)
             else:
-                response = self.client.describe_log_groups(logGroupNamePrefix=log_group_name_prefix, nextToken=next_token)
+                response = self.client.describe_log_groups(logGroupNamePrefix=log_group_name_prefix,
+                                                           nextToken=next_token)
             logging.info("Log groups for prefix {}: {}".format(log_group_name_prefix, response['logGroups']))
             log_groups.extend(response['logGroups'])
             next_token = response.get('nextToken')
@@ -60,16 +62,15 @@ class CloudWatchLogs(object):
                 # first attempt
                 response = self.client.describe_log_streams(
                     logGroupName=log_group_name,
-                    orderBy='LogStreamName',
-                    descending=True,
-                    limit=2
+                    orderBy='LastEventTime',
+                    limit=stream_lookback_count
                 )
             else:
                 response = self.client.describe_log_streams(
                     logGroupName=log_group_name,
-                    orderBy='LogStreamName',
-                    descending=True,
-                    nextToken=next_token
+                    orderBy='LastEventTime',
+                    nextToken=next_token,
+                    limit=stream_lookback_count
                 )
             log_streams.extend(response['logStreams'])
             next_token = response.get('nextToken')
@@ -99,8 +100,7 @@ class CloudWatchLogs(object):
                         logGroupName=log_group_name,
                         logStreamName=log_stream_name,
                         startFromHead=False,
-                        limit=batch_limit,
-                        startTime=self.start_time
+                        limit=batch_limit
                     )
                 else:
                     response = self.client.get_log_events(
@@ -108,15 +108,17 @@ class CloudWatchLogs(object):
                         logStreamName=log_stream_name,
                         nextToken=next_token,
                         startFromHead=False,
-                        limit=batch_limit,
-                        startTime=self.start_time
+                        limit=batch_limit
                     )
 
-                yield response['events']
+                yield response['events'], next_token
                 time.sleep(poll_sleep_time)
                 next_token = response['nextForwardToken']
+                print("Stream: {}, Next token: {}".format(log_stream_name, next_token))
+
                 if not next_token:
                     break
+
         except Exception as ex:
             logging.exception(ex)
             # reraising
