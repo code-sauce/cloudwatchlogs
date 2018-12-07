@@ -26,17 +26,17 @@ You should see the logs being downloaded under the `aws_logs` directory grouped 
 You can view the daemon logs at `cwl.log`
 
 
-# Building
+# Development
 
-## Remove old cached files
 ```
-rm -rf ~/.pex/ && rm cloudwatchlogs.pex && rm cloudwatchlogs-1.0-py2-none-any.whl
+1. Install pip
+2. `pip install wheel`
+3. rm -rf ~/.pex/ && rm cloudwatchlogs.pex && rm cloudwatchlogs-1.0-py2-none-any.whl
+4. pip wheel -w . . && pex -f $PWD cloudwatchlogs boto3 python-slugify -m cloudwatch.main -o cloudwatchlogs.pex
 ```
 
-## Build
-```
-pip wheel -w . . && pex -f $PWD cloudwatchlogs boto3 python-slugify -m cloudwatch.main -o cloudwatchlogs.pex
-```
+# Consumers
+You can modify the consumers in the main.py file. TODO this needs to be part of the config
 
 ## Daemon(s)
 

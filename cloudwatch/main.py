@@ -1,13 +1,13 @@
 import json
-import os
 import threading
 import time
 from threading import Lock
 
-from slugify import slugify
-
 from cloudwatch.config import *
 from cloudwatch.cwl import CloudWatchLogs
+from cloudwatch.consumer_mixpanel import MixpanelConsumer
+from cloudwatch.consumer_filesystem import FileSystemConsumer
+from cloudwatch.utils import create_file_if_does_not_exist
 
 """
 GLOBALS GO HERE
@@ -72,56 +72,25 @@ class LogStreamHandler(object):
     def __init__(self, client):
         self.aws_client = client
 
-    @staticmethod
-    def _create_file_if_does_not_exist(file_name):
-        try:
-            file = open(file_name, 'r')
-        except IOError:
-            file = open(file_name, 'w')
-        file.close()
-
-    @staticmethod
-    def _get_log_dir_name(log_group_name):
-        return slugify(log_group_name)
-
-    @staticmethod
-    def _get_file_name(log_group_name, log_stream_name):
-        """
-        Given a log group and a log stream name, generates the sanitized
-        file name to be written to. Cleans any special characters
-        @param log_group_name: The log group name
-        @param log_stream_name: The log stream name
-        """
-
-        sanitized_log_group_name = LogStreamHandler._get_log_dir_name(log_group_name)
-        sanitized_log_stream_name = slugify(log_stream_name)
-        dir_path = os.path.join(AWS_LOGS_DIRECTORY, sanitized_log_group_name)
-        if not os.path.exists(dir_path):
-            os.makedirs(dir_path)
-        return "{0}/{1}/{2}.log".format(
-            AWS_LOGS_DIRECTORY, sanitized_log_group_name, sanitized_log_stream_name)
-
-    def write_log(self, file_name, log_group_name, log_stream_name):
+    def write_log(self, log_group_name, log_stream_name, consumers):
         """
         Writes the log to the log file
         @param file_name: The log file name to be written to
         @param log_group_name: The log group name
         @param log_stream_name: The log stream name
+        @param consumers: List of consumers of type BaseConsumer
         """
 
         # get the data from the log group
-        LogStreamHandler._create_file_if_does_not_exist(file_name)
-        fhandle = open(file_name, 'a+')
+
         for _logs, next_token in self.aws_client.get_log_events(log_group_name, log_stream_name, gb):
 
             # handle the log events
             for _log in _logs:
-                fhandle.write(str(_log) + '\n')
-                fhandle.flush()
+                for consumer in consumers:
+                    consumer.process(_log, log_group_name, log_stream_name)
 
             gb.set_checkpoint(log_stream_name, next_token)
-
-        fhandle.close()
 
     def _wanted_log_stream(self, log_stream_name):
         if LOG_STREAMS_FILTER is None or log_stream_name in LOG_STREAMS_FILTER:
@@ -180,9 +149,8 @@ class LogStreamHandler(object):
             if not new_streams:
                 time.sleep(TIME_DAEMON_SLEEP)
             for log_group_name, log_stream_name in new_streams:
-                file_name = LogStreamHandler._get_file_name(log_group_name, log_stream_name)
                 log_getter = threading.Thread(
-                    target=self.write_log, args=(file_name, log_group_name, log_stream_name))
+                    target=self.write_log, args=(log_group_name, log_stream_name, consumers))
                 logging.debug("CONSUMING LOG STREAM: %s, %s", log_group_name, log_stream_name)
                 log_getter.start()
                 gb.set_log_stream_map((log_group_name, log_stream_name), log_getter)
@@ -202,7 +170,7 @@ class LogStreamHandler(object):
             state['modified_time'] = time.asctime()
             state.update(gb.get_checkpoint())
             state_json = json.dumps(state)
-            self._create_file_if_does_not_exist(location)
+            create_file_if_does_not_exist(location)
             fhandle = open(location, 'w')
             # handle the log events
             fhandle.write(state_json)
@@ -245,6 +213,21 @@ class LogProcessMonitor(object):
             time.sleep(TIME_DAEMON_SLEEP)
 
 
+def load_checkpoint():
+    try:
+        f = open('cwl.state', 'r')
+        checkpoint = f.read()
+        print("checkpoint found")
+        checkpoint = json.loads(checkpoint)
+        print("parsed checkpoint is ", checkpoint)
+        del checkpoint['modified_time']
+        for key, value in checkpoint.items():
+            gb.set_checkpoint(key, value)
+
+    except:
+        print("No checkpoint found")
+
+
 if __name__ == '__main__':
     try:
 
@@ -252,6 +235,12 @@ if __name__ == '__main__':
         client = CloudWatchLogs(AWS_ACCESS_KEY, AWS_SECRET_KEY)
 
         logstreamhandler = LogStreamHandler(client)
+
+        load_checkpoint()
+        mp_consumer = MixpanelConsumer()
+        fs_consumer = FileSystemConsumer()
+        #consumers = [mp_consumer, fs_consumer]  # the consumer of the logs
+        consumers = [mp_consumer]  # the consumer of the logs
 
         discover_logs_thread = threading.Thread(target=logstreamhandler.discover_logs, args=())
 
