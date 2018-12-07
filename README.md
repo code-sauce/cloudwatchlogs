@@ -53,10 +53,8 @@ process may have a max RLIMIT_*
 * Because of Python's GIL, using multi-core processors is not possible. If anything, multi-cores make the processing slower.
 * however threads are easy to use than processes if we need thread communication and global state
 
-## Maintaining State [TODO]
-1. A state needs to be maintained when polling for logs.
-Eg. if stream1 was being polled, we need to maintain which was the last log written [nextForwardToken]
-so that if the daemon is interrupted or restarted, we can resume the process from where we last dropped off
+## Maintaining State
+A state file (checkpoint) is maintained under the project directory named `cwl.state`. This file contains the last time the file was modified and a map of log stream to the last processed `nextToken` so if the process dies, it can read from the state and resume from that point.
 
 ## Monitoring
 1. Monitor if the files are being written to with system leven information like total file size(s) etc. [TODO]
