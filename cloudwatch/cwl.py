@@ -78,11 +78,12 @@ class CloudWatchLogs(object):
                 break  # nothing more to fetch
         return log_streams
 
-    def get_log_events(self, log_group_name, log_stream_name, batch_limit=BATCH_SIZE, poll_sleep_time=6):
+    def get_log_events(self, log_group_name, log_stream_name, gb, batch_limit=BATCH_SIZE, poll_sleep_time=6):
         """
         Gets the log events for the log group and log stream combination
         @param log_group_name: the log group name
         @param log_stream_name: the log stream in the group
+        @param gb: global manager object to get/set globals
         @param batch_limit: the max number of log events returned
         @param poll_sleep_time: time to sleep (in seconds) between polling for logs, to avoid rate limit
         returns: log events [list]
@@ -95,13 +96,24 @@ class CloudWatchLogs(object):
         try:
             while True:
                 if not next_token:
-                    # first attempt
-                    response = self.client.get_log_events(
-                        logGroupName=log_group_name,
-                        logStreamName=log_stream_name,
-                        startFromHead=False,
-                        limit=batch_limit
-                    )
+                    # first attempt, try to load the checkpoint and find the next token
+                    next_token = gb.get_checkpoint().get(log_stream_name) or ""
+                    if next_token:
+                        print("Found checkpoint for stream {}, next token stored {}".format(log_stream_name, next_token))
+                        response = self.client.get_log_events(
+                            logGroupName=log_group_name,
+                            logStreamName=log_stream_name,
+                            nextToken=next_token,
+                            startFromHead=False,
+                            limit=batch_limit
+                        )
+                    else:
+                        response = self.client.get_log_events(
+                            logGroupName=log_group_name,
+                            logStreamName=log_stream_name,
+                            startFromHead=False,
+                            limit=batch_limit
+                        )
                 else:
                     response = self.client.get_log_events(
                         logGroupName=log_group_name,

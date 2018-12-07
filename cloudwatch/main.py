@@ -112,7 +112,7 @@ class LogStreamHandler(object):
         # get the data from the log group
         LogStreamHandler._create_file_if_does_not_exist(file_name)
         fhandle = open(file_name, 'a+')
-        for _logs, next_token in self.aws_client.get_log_events(log_group_name, log_stream_name):
+        for _logs, next_token in self.aws_client.get_log_events(log_group_name, log_stream_name, gb):
 
             # handle the log events
             for _log in _logs:
