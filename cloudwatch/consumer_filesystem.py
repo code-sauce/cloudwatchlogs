@@ -32,7 +32,6 @@ class FileSystemConsumer(BaseConsumer):
         file_name = FileSystemConsumer._get_file_name(log_group, log_stream)
         create_file_if_does_not_exist(file_name)
         fhandle = open(file_name, 'a+')
-        print("RAW LOG LINE: ", log_line)
         fhandle.write(str(log_line) + '\n')
         fhandle.flush()
         fhandle.close()

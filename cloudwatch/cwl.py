@@ -61,22 +61,22 @@ class CloudWatchLogs(object):
             if not next_token:
                 # first attempt
                 response = self.client.describe_log_streams(
-                    logGroupName=log_group_name,
-                    orderBy='LastEventTime',
-                    limit=stream_lookback_count
+                    logGroupName=log_group_name
+
                 )
             else:
                 response = self.client.describe_log_streams(
                     logGroupName=log_group_name,
-                    orderBy='LastEventTime',
-                    nextToken=next_token,
-                    limit=stream_lookback_count
+                    nextToken=next_token
                 )
             log_streams.extend(response['logStreams'])
             next_token = response.get('nextToken')
             if not next_token:
                 break  # nothing more to fetch
-        return log_streams
+
+        log_streams = sorted(log_streams, key=lambda x: x['lastEventTimestamp'], reverse=True)  # sort by event time desc
+        print("\n\n Total streams found: {}, the ones to be downloaded: {}".format(len(log_streams), [x['logStreamName'] for x in log_streams[:stream_lookback_count]]))
+        return log_streams[:stream_lookback_count]  # only the latest streams
 
     def get_log_events(self, log_group_name, log_stream_name, gb, batch_limit=BATCH_SIZE, poll_sleep_time=6):
         """
@@ -122,11 +122,9 @@ class CloudWatchLogs(object):
                         startFromHead=False,
                         limit=batch_limit
                     )
-
                 yield response['events'], next_token
                 time.sleep(poll_sleep_time)
                 next_token = response['nextForwardToken']
-                print("Stream: {}, Next token: {}".format(log_stream_name, next_token))
 
                 if not next_token:
                     break

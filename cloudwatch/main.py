@@ -48,6 +48,14 @@ class GlobalManager(object):
         finally:
             self.lock.release()
 
+    def delete_stream_from_map(self, key):
+        self.lock.acquire()
+        try:
+            if LOG_STREAM_MAP.get(key):
+                del LOG_STREAM_MAP[key]
+        finally:
+            self.lock.release()
+
     def get_checkpoint(self):
 
         self.lock.acquire()
@@ -82,9 +90,7 @@ class LogStreamHandler(object):
         """
 
         # get the data from the log group
-
         for _logs, next_token in self.aws_client.get_log_events(log_group_name, log_stream_name, gb):
-
             # handle the log events
             for _log in _logs:
                 for consumer in consumers:
@@ -97,6 +103,17 @@ class LogStreamHandler(object):
             return True
         return False
 
+    def _remove_old_streams(self, streams):
+        """
+        Removes any old streams from the LOG_STREAM_MAP
+        """
+
+        for stream in streams:
+            if not gb.get_log_stream_map().get(LOG_GROUP_NAME, stream):
+                print("CLEANING UP LOG STREAM: {}/{}".format(LOG_GROUP_NAME, stream))
+                k = (LOG_GROUP_NAME, stream)
+                gb.delete_stream_from_map(k)
+
     def _discover_log_streams(self):
         """
         This method is used by the main process to discover new log streams
@@ -104,6 +121,9 @@ class LogStreamHandler(object):
         """
         log_streams = self.aws_client.get_log_streams(
             log_group_name=LOG_GROUP_NAME, stream_lookback_count=STREAM_LOOKBACK_COUNT)
+
+        self._remove_old_streams(log_streams)
+
         for log_stream in log_streams:
             if not gb.get_log_stream_map().get((LOG_GROUP_NAME,)):
                 # setting the value to None is an indication that no thread is working on the log stream
@@ -148,6 +168,7 @@ class LogStreamHandler(object):
 
             if not new_streams:
                 time.sleep(TIME_DAEMON_SLEEP)
+
             for log_group_name, log_stream_name in new_streams:
                 log_getter = threading.Thread(
                     target=self.write_log, args=(log_group_name, log_stream_name, consumers))
@@ -165,8 +186,6 @@ class LogStreamHandler(object):
         state = {}
 
         while True:
-            print("\n\n** State: ", gb.get_checkpoint())
-
             state['modified_time'] = time.asctime()
             state.update(gb.get_checkpoint())
             state_json = json.dumps(state)
@@ -237,10 +256,14 @@ if __name__ == '__main__':
         logstreamhandler = LogStreamHandler(client)
 
         load_checkpoint()
+
         mp_consumer = MixpanelConsumer()
         fs_consumer = FileSystemConsumer()
-        #consumers = [mp_consumer, fs_consumer]  # the consumer of the logs
-        consumers = [mp_consumer]  # the consumer of the logs
+        consumers = []
+        if MIXPANEL_TOKEN:
+            consumers.append(mp_consumer)
+        if AWS_LOGS_DIRECTORY:
+            consumers.append(fs_consumer)
 
         discover_logs_thread = threading.Thread(target=logstreamhandler.discover_logs, args=())
 
