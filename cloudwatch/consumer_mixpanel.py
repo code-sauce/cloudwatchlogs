@@ -1,6 +1,6 @@
 from cloudwatch.consumer_abstract import BaseConsumer
 import json
-from cloudwatch.config import MIXPANEL_TOKEN, ENV
+from cloudwatch.config import MIXPANEL_TOKEN, CWL_ENV
 from mixpanel import Mixpanel
 import logging
 
@@ -37,7 +37,7 @@ class MixpanelConsumer(BaseConsumer):
                 'url': templatized_url,
                 'full_url': request_url,
                 'app_id': app_id,
-                'env': ENV
+                'env': CWL_ENV
             }
             print("sending payload\n", payload)
             if MixpanelConsumer.should_report(templatized_url, app_id=app_id):
