@@ -23,4 +23,4 @@ STREAM_LOOKBACK_COUNT = 2
 # Consumption
 MIXPANEL_TOKEN = os.environ.get("MIXPANEL_TOKEN")
 AWS_LOGS_DIRECTORY = os.environ.get("AWS_LOGS_DIRECTORY")  # if you want to write the logs to local file system
-CWL_ENV = os.environ.get('ENV') or "dev"
+CWL_ENV = os.environ.get('CWL_ENV') or "dev"
