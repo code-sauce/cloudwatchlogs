@@ -42,7 +42,6 @@ class MixpanelConsumer(BaseConsumer):
                 'app_id': app_id,
                 'env': CWL_ENV
             }
-            print("sending payload\n", payload)
             if MixpanelConsumer.should_report(templatized_url, app_id=app_id):
                 self.mp.track(app_id, 'API Request', payload)
 
