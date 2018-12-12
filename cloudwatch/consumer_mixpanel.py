@@ -23,7 +23,10 @@ class MixpanelConsumer(BaseConsumer):
 
         try:
             message = log_line['message']
-            message = json.loads(message)
+            try:
+                message = json.loads(message)
+            except:
+                return
             message = message.get('message')
             if 'templatized_url' not in message:
                 return
