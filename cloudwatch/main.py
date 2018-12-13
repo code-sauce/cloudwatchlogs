@@ -90,13 +90,11 @@ class LogStreamHandler(object):
         """
 
         # get the data from the log group
-        for _logs, next_token in self.aws_client.get_log_events(log_group_name, log_stream_name, gb):
+        for _logs in self.aws_client.get_log_events(log_group_name, log_stream_name, gb):
             # handle the log events
             for _log in _logs:
                 for consumer in consumers:
                     consumer.process(_log, log_group_name, log_stream_name)
-
-            gb.set_checkpoint(log_stream_name, next_token)
 
     def _wanted_log_stream(self, log_stream_name):
         if LOG_STREAMS_FILTER is None or log_stream_name in LOG_STREAMS_FILTER:

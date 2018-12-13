@@ -23,6 +23,7 @@ class MixpanelConsumer(BaseConsumer):
 
         try:
             message = log_line['message']
+            timestamp = log_line['timestamp']/1000  # epoch (in second)
             try:
                 message = json.loads(message)
             except:
@@ -40,7 +41,8 @@ class MixpanelConsumer(BaseConsumer):
                 'url': templatized_url,
                 'full_url': request_url,
                 'app_id': app_id,
-                'env': CWL_ENV
+                'env': CWL_ENV,
+                'time': timestamp
             }
             if MixpanelConsumer.should_report(templatized_url, app_id=app_id):
                 self.mp.track(app_id, 'API Request', payload)

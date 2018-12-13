@@ -3,6 +3,8 @@ from slugify import slugify
 from cloudwatch.utils import create_file_if_does_not_exist
 from cloudwatch.config import *
 
+seen_before = set()
+
 
 class FileSystemConsumer(BaseConsumer):
 

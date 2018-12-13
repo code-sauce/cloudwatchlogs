@@ -4,6 +4,7 @@ Module to interact with the cloudwatch logs
 import time
 
 import boto3
+import uuid
 
 from cloudwatch.config import *
 
@@ -95,25 +96,16 @@ class CloudWatchLogs(object):
         log_events = []
         try:
             while True:
+                next_token = gb.get_checkpoint().get(log_stream_name) or ""
+
                 if not next_token:
                     # first attempt, try to load the checkpoint and find the next token
-                    next_token = gb.get_checkpoint().get(log_stream_name) or ""
-                    if next_token:
-                        print("Found checkpoint for stream {}, next token stored {}".format(log_stream_name, next_token))
-                        response = self.client.get_log_events(
-                            logGroupName=log_group_name,
-                            logStreamName=log_stream_name,
-                            nextToken=next_token,
-                            startFromHead=False,
-                            limit=batch_limit
-                        )
-                    else:
-                        response = self.client.get_log_events(
-                            logGroupName=log_group_name,
-                            logStreamName=log_stream_name,
-                            startFromHead=False,
-                            limit=batch_limit
-                        )
+                    response = self.client.get_log_events(
+                        logGroupName=log_group_name,
+                        logStreamName=log_stream_name,
+                        startFromHead=False,
+                        limit=batch_limit
+                    )
                 else:
                     response = self.client.get_log_events(
                         logGroupName=log_group_name,
@@ -122,11 +114,17 @@ class CloudWatchLogs(object):
                         startFromHead=False,
                         limit=batch_limit
                     )
-                yield response['events'], next_token
-                time.sleep(poll_sleep_time)
-                next_token = response['nextForwardToken']
 
-                if not next_token:
+                next_forward_token = response['nextForwardToken']
+                print("Next Token {}, forward token {} log lines returned: {}".format(next_token, next_forward_token,
+                                                                                      len(response['events'])))
+
+                gb.set_checkpoint(log_stream_name, next_forward_token)
+
+                yield response['events']
+                time.sleep(poll_sleep_time)
+
+                if not next_forward_token:
                     break
 
         except Exception as ex:

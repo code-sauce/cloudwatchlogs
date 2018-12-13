@@ -18,7 +18,7 @@ try:
 except:
     print("No specific log streams to be downloaded")
 BATCH_SIZE = os.environ.get('BATCH_SIZE') or 1000
-STREAM_LOOKBACK_COUNT = 2
+STREAM_LOOKBACK_COUNT = 1
 
 # Consumption
 MIXPANEL_TOKEN = os.environ.get("MIXPANEL_TOKEN")
