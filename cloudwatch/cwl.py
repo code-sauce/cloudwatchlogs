@@ -4,7 +4,9 @@ Module to interact with the cloudwatch logs
 import time
 
 import boto3
-import uuid
+seen_tokens = set()
+from threading import Lock
+
 
 from cloudwatch.config import *
 
@@ -25,6 +27,8 @@ class CloudWatchLogs(object):
             raise Exception("Needs an AWS Connection string")
         self.client = CloudWatchLogs._get_client(aws_access_key, aws_secret_key)
         self.start_time = int(time.time()) * 1000
+        self.lock = Lock()
+
         logging.info("Getting logs from time: {}".format(self.start_time))
 
     def get_log_groups(self, log_group_name_prefix=None):
@@ -96,7 +100,13 @@ class CloudWatchLogs(object):
         log_events = []
         try:
             while True:
+                self.lock.acquire()
+
                 next_token = gb.get_checkpoint().get(log_stream_name) or ""
+
+                # if next_token in seen_tokens:
+                #     raise Exception("next token {} already seen".format(next_token))
+                # seen_tokens.add(next_token)
 
                 if not next_token:
                     # first attempt, try to load the checkpoint and find the next token
@@ -116,10 +126,13 @@ class CloudWatchLogs(object):
                     )
 
                 next_forward_token = response['nextForwardToken']
-                print("Next Token {}, forward token {} log lines returned: {}".format(next_token, next_forward_token,
+
+                logging.info("Next Token {}, forward token {} log lines returned: {}".format(next_token, next_forward_token,
                                                                                       len(response['events'])))
 
                 gb.set_checkpoint(log_stream_name, next_forward_token)
+
+                self.lock.release()
 
                 yield response['events']
                 time.sleep(poll_sleep_time)

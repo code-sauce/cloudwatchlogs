@@ -79,6 +79,7 @@ class LogStreamHandler(object):
 
     def __init__(self, client):
         self.aws_client = client
+        self.lock = Lock()
 
     def write_log(self, log_group_name, log_stream_name, consumers):
         """
@@ -146,13 +147,18 @@ class LogStreamHandler(object):
         have not been handled. If so, return those
         """
 
+        self.lock.acquire()
+
         new_streams = []
         for key, value in gb.get_log_stream_map().items():
             if value is None:
                 new_streams.append(key)
         if new_streams:
             print(str(new_streams))
-            logging.debug("Found new Streams: %s", str(new_streams))
+            logging.info("Found new Streams: %s", str(new_streams))
+
+        self.lock.release()
+
         return new_streams
 
     def sync_new_logs(self):
@@ -162,7 +168,11 @@ class LogStreamHandler(object):
         """
 
         while True:
+
             new_streams = self._get_new_log_streams()
+
+            self.lock.acquire()
+            logging.info("New streams: {}".format(new_streams))
 
             if not new_streams:
                 time.sleep(TIME_DAEMON_SLEEP)
@@ -170,9 +180,11 @@ class LogStreamHandler(object):
             for log_group_name, log_stream_name in new_streams:
                 log_getter = threading.Thread(
                     target=self.write_log, args=(log_group_name, log_stream_name, consumers))
-                logging.debug("CONSUMING LOG STREAM: %s, %s", log_group_name, log_stream_name)
-                log_getter.start()
+                logging.info("Consuming log stream: %s, %s %s", log_group_name, log_stream_name, log_getter)
                 gb.set_log_stream_map((log_group_name, log_stream_name), log_getter)
+                log_getter.start()
+
+            self.lock.release()
 
     def persist_state(self, location='cwl.state'):
         """
