@@ -4,6 +4,7 @@ import time
 from threading import Lock
 
 from cloudwatch.config import *
+import boto3
 from cloudwatch.cwl import CloudWatchLogs
 from cloudwatch.consumer_mixpanel import MixpanelConsumer
 from cloudwatch.consumer_filesystem import FileSystemConsumer
@@ -23,6 +24,8 @@ as we discover more log streams
 """
 LOG_STREAM_MAP = {}
 LOG_STREAM_CHECKPOINT = {}  # key = stream id, value = next token to be fetched
+
+s3_client = boto3.client('s3')
 
 
 class GlobalManager(object):
@@ -200,11 +203,16 @@ class LogStreamHandler(object):
             state.update(gb.get_checkpoint())
             state_json = json.dumps(state)
             create_file_if_does_not_exist(location)
+
             fhandle = open(location, 'w')
             # handle the log events
             fhandle.write(state_json)
             fhandle.flush()
             fhandle.close()
+
+            with open(location, 'rb') as data:
+                s3_client.upload_fileobj(data, 'cloudwatch.mixpanel.state', "{}-state".format(CWL_ENV))
+
 
             time.sleep(1)
 
@@ -252,7 +260,6 @@ def load_checkpoint():
         del checkpoint['modified_time']
         for key, value in checkpoint.items():
             gb.set_checkpoint(key, value)
-
     except:
         print("No checkpoint found")
 
