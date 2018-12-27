@@ -100,9 +100,7 @@ class LogStreamHandler(object):
                     consumer.process(_log, log_group_name, log_stream_name)
 
     def _wanted_log_stream(self, log_stream_name):
-        if LOG_STREAMS_FILTER is None or log_stream_name in LOG_STREAMS_FILTER:
-            return True
-        return False
+        return True
 
     def _remove_old_streams(self, streams):
         """
