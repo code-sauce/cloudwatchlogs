@@ -12,7 +12,6 @@ export AWS_ACCESS_KEY=xxxxxx
 export AWS_SECRET_KEY=xxxxxx 
 export MIXPANEL_TOKEN=xxxxxx
 export LOG_GROUP_NAME=/ecs/<log group>  # log group to fetch
-export LOG_STREAMS_FILTER=ecs/nrc-container/foo,ecs/nrc-container/bar  # a CSV list of log stream to download.
 export ENV=test  # defaults to dev
 ```
 
