@@ -252,7 +252,7 @@ def load_checkpoint():
         checkpoint = f.read()
         logging.info("checkpoint found")
         checkpoint = json.loads(checkpoint)
-        logging.info("parsed checkpoint is ", checkpoint)
+        logging.info("parsed checkpoint is %s", checkpoint)
         del checkpoint['modified_time']
         for key, value in checkpoint.items():
             gb.set_checkpoint(key, value)
@@ -288,7 +288,7 @@ if __name__ == '__main__':
 
         workers = [discover_logs_thread, logs_getter_thread, process_monitor_thread, persist_stream_checkpoint]
 
-        logging.info("Log stream map ", gb.get_log_stream_map())
+        logging.info("Log stream map %s", gb.get_log_stream_map())
         for worker in workers:
             worker.daemon = True
             worker.start()
