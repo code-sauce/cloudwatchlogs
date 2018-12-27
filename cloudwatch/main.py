@@ -150,6 +150,7 @@ class LogStreamHandler(object):
         self.lock.acquire()
 
         new_streams = []
+        logging.info("Stream map {}".format(gb.get_log_stream_map().items()))
         for key, value in gb.get_log_stream_map().items():
             if value is None:
                 new_streams.append(key)
