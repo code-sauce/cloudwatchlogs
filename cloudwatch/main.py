@@ -46,6 +46,7 @@ class GlobalManager(object):
     def set_log_stream_map(self, key, value):
         self.lock.acquire()
         try:
+            logging.info("setting the stream {} to thread {}".format(key, value))
             LOG_STREAM_MAP[key] = value
         finally:
             self.lock.release()
