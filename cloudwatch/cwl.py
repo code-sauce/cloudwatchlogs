@@ -127,9 +127,6 @@ class CloudWatchLogs(object):
 
                 next_forward_token = response['nextForwardToken']
 
-                logging.info("Next Token {}, forward token {} log lines returned: {}".format(next_token, next_forward_token,
-                                                                                      len(response['events'])))
-
                 gb.set_checkpoint(log_stream_name, next_forward_token)
 
                 self.lock.release()
