@@ -2,6 +2,7 @@
 Module to interact with the cloudwatch logs
 """
 import time
+import logging
 
 import boto3
 seen_tokens = set()
@@ -80,7 +81,6 @@ class CloudWatchLogs(object):
                 break  # nothing more to fetch
 
         log_streams = sorted(log_streams, key=lambda x: x['lastEventTimestamp'], reverse=True)  # sort by event time desc
-        print("\n\n Total streams found: {}, the ones to be downloaded: {}".format(len(log_streams), [x['logStreamName'] for x in log_streams[:stream_lookback_count]]))
         return log_streams[:stream_lookback_count]  # only the latest streams
 
     def get_log_events(self, log_group_name, log_stream_name, gb, batch_limit=BATCH_SIZE, poll_sleep_time=6):

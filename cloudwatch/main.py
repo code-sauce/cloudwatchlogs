@@ -2,7 +2,6 @@ import json
 import threading
 import time
 from threading import Lock
-
 from cloudwatch.config import *
 import boto3
 from cloudwatch.cwl import CloudWatchLogs
@@ -112,7 +111,7 @@ class LogStreamHandler(object):
 
         for stream in streams:
             if not gb.get_log_stream_map().get(LOG_GROUP_NAME, stream):
-                print("CLEANING UP LOG STREAM: {}/{}".format(LOG_GROUP_NAME, stream))
+                logging.warning("CLEANING UP LOG STREAM: {}/{}".format(LOG_GROUP_NAME, stream))
                 k = (LOG_GROUP_NAME, stream)
                 gb.delete_stream_from_map(k)
 
@@ -133,7 +132,7 @@ class LogStreamHandler(object):
                 if self._wanted_log_stream(lsn):
                     gb.set_log_stream_map((LOG_GROUP_NAME, lsn), None)
             else:
-                print("Stream {} already being processed".format(log_stream['logStreamName']))
+                logging.info("Stream {} already being processed".format(log_stream['logStreamName']))
         logging.info("Log stream map: {}".format(gb.get_log_stream_map()))
 
     def discover_logs(self):
@@ -157,7 +156,6 @@ class LogStreamHandler(object):
             if value is None:
                 new_streams.append(key)
         if new_streams:
-            print(str(new_streams))
             logging.info("Found new Streams: %s", str(new_streams))
 
         self.lock.release()
@@ -254,14 +252,14 @@ def load_checkpoint():
     try:
         f = open('cwl.state', 'r')
         checkpoint = f.read()
-        print("checkpoint found")
+        logging.info("checkpoint found")
         checkpoint = json.loads(checkpoint)
-        print("parsed checkpoint is ", checkpoint)
+        logging.info("parsed checkpoint is ", checkpoint)
         del checkpoint['modified_time']
         for key, value in checkpoint.items():
             gb.set_checkpoint(key, value)
-    except:
-        print("No checkpoint found")
+    except Exception as ex:
+        logging.warning("No checkpoint found {}".format(repr(ex)))
 
 
 if __name__ == '__main__':
@@ -292,7 +290,7 @@ if __name__ == '__main__':
 
         workers = [discover_logs_thread, logs_getter_thread, process_monitor_thread, persist_stream_checkpoint]
 
-        print("Log stream map ", gb.get_log_stream_map())
+        logging.info("Log stream map ", gb.get_log_stream_map())
         for worker in workers:
             worker.daemon = True
             worker.start()

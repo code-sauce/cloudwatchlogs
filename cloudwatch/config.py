@@ -17,6 +17,7 @@ try:
     LOG_STREAMS_FILTER = os.environ['LOG_STREAMS_FILTER'].split(',')
 except:
     print("No specific log streams to be downloaded")
+    logging.exception("No specific log streams to be downloaded")
 BATCH_SIZE = os.environ.get('BATCH_SIZE') or 1000
 STREAM_LOOKBACK_COUNT = 1
 
