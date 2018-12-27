@@ -125,10 +125,11 @@ class LogStreamHandler(object):
         self._remove_old_streams(log_streams)
 
         for log_stream in log_streams:
-            if not gb.get_log_stream_map().get((LOG_GROUP_NAME,)):
+            lsn = log_stream['logStreamName']
+            if not gb.get_log_stream_map().get((LOG_GROUP_NAME, lsn)):
                 # setting the value to None is an indication that no thread is working on the log stream
-                lsn = log_stream['logStreamName']
                 if self._wanted_log_stream(lsn):
+                    logging.info("Log stream {} not tracked - starting to track".format(lsn))
                     gb.set_log_stream_map((LOG_GROUP_NAME, lsn), None)
             else:
                 logging.info("Stream {} already being processed".format(log_stream['logStreamName']))
