@@ -135,7 +135,7 @@ class LogStreamHandler(object):
                 logging.info("Stream {} already being processed".format(log_stream['logStreamName']))
         logging.info("Log stream map: {}".format(gb.get_log_stream_map()))
 
-    def discover_logs(self):
+    def discover_log_streams(self):
         """
         A daemon that continuously looks for log streams
         """
@@ -281,7 +281,7 @@ if __name__ == '__main__':
         if AWS_LOGS_DIRECTORY:
             consumers.append(fs_consumer)
 
-        discover_logs_thread = threading.Thread(target=logstreamhandler.discover_logs, args=())
+        discover_log_streams_thread = threading.Thread(target=logstreamhandler.discover_log_streams, args=())
 
         logs_getter_thread = threading.Thread(target=logstreamhandler.sync_new_logs, args=())
 
@@ -289,7 +289,7 @@ if __name__ == '__main__':
 
         persist_stream_checkpoint = threading.Thread(target=logstreamhandler.persist_state, args=())
 
-        workers = [discover_logs_thread, logs_getter_thread, process_monitor_thread, persist_stream_checkpoint]
+        workers = [discover_log_streams_thread, logs_getter_thread, process_monitor_thread, persist_stream_checkpoint]
 
         logging.info("Log stream map %s", gb.get_log_stream_map())
         for worker in workers:
@@ -298,5 +298,14 @@ if __name__ == '__main__':
         while True:
             logging.info("Heartbeat")
             time.sleep(TIME_DAEMON_SLEEP)
+
+            # check the health of threads. restart if they have died and log loudly
+            for worker in workers:
+                if not worker.is_alive():
+                    logging.exception(
+                        "!! Worker thread {} died around time {} - restarting it.".format(worker.name, time.asctime())
+                    )
+                    worker.start()
+
     except KeyboardInterrupt as ex:
         logging.error("Keyboard interrupt received..")
