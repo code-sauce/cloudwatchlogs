@@ -80,7 +80,7 @@ class CloudWatchLogs(object):
             if not next_token:
                 break  # nothing more to fetch
 
-        log_streams = sorted(log_streams, key=lambda x: x['lastEventTimestamp'], reverse=True)  # sort by event time desc
+        log_streams = sorted(log_streams, key=lambda x: x.get('lastEventTimestamp', float('-inf')), reverse=True)  # sort by event time desc
         return log_streams[:stream_lookback_count]  # only the latest streams
 
     def get_log_events(self, log_group_name, log_stream_name, gb, batch_limit=BATCH_SIZE, poll_sleep_time=6):

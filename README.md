@@ -12,7 +12,7 @@ export AWS_ACCESS_KEY=xxxxxx
 export AWS_SECRET_KEY=xxxxxx 
 export MIXPANEL_TOKEN=xxxxxx
 export LOG_GROUP_NAME=/ecs/<log group>  # log group to fetch
-export ENV=test  # defaults to dev
+export CWL_ENV=<your env namespace> # defaults to dev
 ```
 
 ```export MIXPANEL_TOKEN=xxxx``` if you want to report the log events to Mixpanel
