@@ -18,14 +18,14 @@ Optional env variables:
 
 To configure the batch size (number of logs to be pulled per query, default 1000)
 ```
-export BATCH_SIZE = 1000
+export BATCH_SIZE=1000
 ```  
 
 To configure how many log streams to start pulling logs from (latest first)
 defaults to 1
 
 ```
-export STREAM_LOOKBACK_COUNT = 1
+export STREAM_LOOKBACK_COUNT=1
 ```
 
 ```export MIXPANEL_TOKEN=xxxx``` if you want to report the log events to Mixpanel
