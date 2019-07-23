@@ -18,9 +18,9 @@ export CWL_ENV=<your env namespace> # defaults to dev
 
 Optional env variables:
 
-To configure the batch size (number of logs to be pulled per query, default 1000)
+To configure the batch size (number of logs to be pulled per query, default 100)
 ```
-export BATCH_SIZE=1000
+export BATCH_SIZE=100
 ```  
 
 To configure how many log streams to start pulling logs from (latest first)
@@ -40,7 +40,7 @@ export STREAM_LOOKBACK_COUNT=1
 ./build_and_run.sh
 ```
 
-You should see the logs being downloaded under the `aws_logs` directory grouped by the log group directory and all the log streams desired under the directory as separate file(s)
+You should see the logs being downloaded under the `/var/log/cloudwatchlogs/<cwl group name>/<cwl stream name>` directory grouped by the log group directory and all the log streams desired under the directory as separate file(s)
 
 # Logs
 You can view the daemon logs at `cwl.log`
