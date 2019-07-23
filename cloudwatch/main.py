@@ -209,10 +209,8 @@ class LogStreamHandler(object):
             fhandle.flush()
             fhandle.close()
 
-            with open(location, 'rb') as data:
-                s3_client.upload_fileobj(data, 'cloudwatch.mixpanel.state', "{}-state".format(CWL_ENV))
-
-
+            # with open(location, 'rb') as data:
+            #     s3_client.upload_fileobj(data, 'cloudwatch.mixpanel.state', "{}-state".format(CWL_ENV))
             time.sleep(1)
 
 
@@ -267,7 +265,7 @@ if __name__ == '__main__':
     try:
 
         configure_logging()
-        client = CloudWatchLogs(AWS_ACCESS_KEY, AWS_SECRET_KEY)
+        client = CloudWatchLogs(AWS_ACCESS_KEY, AWS_SECRET_KEY, AWS_REGION, AWS_SESSION_TOKEN)
 
         logstreamhandler = LogStreamHandler(client)
 

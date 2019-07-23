@@ -25,7 +25,13 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.pex
+*.whl
 MANIFEST
+
+# State and Log files
+*.log
+*.state
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

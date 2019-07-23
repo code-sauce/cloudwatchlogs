@@ -15,18 +15,20 @@ from cloudwatch.config import *
 class CloudWatchLogs(object):
 
     @staticmethod
-    def _get_client(aws_access_key, aws_secret_key):
+    def _get_client(aws_access_key, aws_secret_key, aws_region, aws_session_token):
         return boto3.client(
             'logs',
             aws_access_key_id=aws_access_key,
-            aws_secret_access_key=aws_secret_key
+            aws_secret_access_key=aws_secret_key,
+            region_name=aws_region,
+            aws_session_token=aws_session_token
         )
 
-    def __init__(self, aws_access_key, aws_secret_key):
+    def __init__(self, aws_access_key, aws_secret_key, aws_region, aws_session_token):
         # injecting the AWS connection dependency
         if not (aws_access_key and aws_secret_key):
             raise Exception("Needs an AWS Connection string")
-        self.client = CloudWatchLogs._get_client(aws_access_key, aws_secret_key)
+        self.client = CloudWatchLogs._get_client(aws_access_key, aws_secret_key, aws_region, aws_session_token)
         self.start_time = int(time.time()) * 1000
         self.lock = Lock()
 

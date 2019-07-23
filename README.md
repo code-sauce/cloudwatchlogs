@@ -9,7 +9,9 @@ Set up the configuration:
 1. 
 ```
 export AWS_ACCESS_KEY=xxxxxx
-export AWS_SECRET_KEY=xxxxxx 
+export AWS_SECRET_KEY=xxxxxx
+export AWS_SESSION_TOKEN=xxxxxx 
+export AWS_REGION=us-east-1
 export LOG_GROUP_NAME=/ecs/<log group>  # log group to fetch
 export CWL_ENV=<your env namespace> # defaults to dev
 ```
@@ -33,9 +35,9 @@ export STREAM_LOOKBACK_COUNT=1
 
 
 
-2. Run the [pex](https://pex.readthedocs.io/en/stable/) executable
+2. Run the [pex](https://pex.readthedocs.io/en/stable/) executable (you need pip3)
 ```
-./cloudwatchlogs.pex 
+./build_and_run.sh
 ```
 
 You should see the logs being downloaded under the `aws_logs` directory grouped by the log group directory and all the log streams desired under the directory as separate file(s)
@@ -43,15 +45,6 @@ You should see the logs being downloaded under the `aws_logs` directory grouped 
 # Logs
 You can view the daemon logs at `cwl.log`
 
-
-# Development
-
-```
-1. Install pip
-2. pip install wheel
-3. rm -rf ~/.pex/ && rm cloudwatchlogs.pex && rm cloudwatchlogs-1.0-py2-none-any.whl
-4. pip wheel -w . . && pex -f $PWD cloudwatchlogs mixpanel boto3 python-slugify -m cloudwatch.main -o cloudwatchlogs.pex
-```
 
 ## Maintaining State
 A state file (checkpoint) is maintained under the project directory named `cwl.state`. This file contains the last time the file was modified and a map of log stream to the last processed `nextToken` so if the process dies, it can read from the state and resume from that point.
